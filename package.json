@@ -6,12 +6,10 @@
     "@mana/lib": "workspace:^0.1.0"
   },
   "devDependencies": {
-    "linaria": "^1.3.3",
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"
   },
   "peerDependencies": {
-    "linaria": "^1.3.3",
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"
   }
