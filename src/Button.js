@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useRipple } from "@mana/lib";
-import { css } from 'linaria'
+import SystemContext from "./SystemContext";
 
 const Button = ({ children, ...props }) => {
   const [surface, ripple] = useRipple();
+  const system = useContext(SystemContext)
+  const classes = system.useButtonStyles()
   return (
     <button
       {...props}
       ref={surface}
-      className={css` position: relative; overflow: hidden; cursor: pointer;`}
+      className={classes.button}
     >
       {children}
       {ripple}
