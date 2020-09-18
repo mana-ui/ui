@@ -24,7 +24,7 @@ npm install @mana-ui/ui @mana-ui/md
 ## Configure Design System
 ``` javascript
 import {SystemProvider, Button} from '@mana-ui/ui'
-import * as md from '@mana-ui/md'
+import * as md from '@mana-ui/material'
 
 const App = () => (
     <SystemProvider system={md}>
