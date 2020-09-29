@@ -2,24 +2,25 @@ import React, { Children, createContext, useContext } from "react";
 import { useTheme } from "react-jss";
 import Button from "./Button";
 import SystemContext from "./SystemContext";
-import { AnimatePresence, AnimateSharedLayout, motion } from "framer-motion";
+import { AnimateSharedLayout, motion } from "framer-motion";
+import cx from 'classnames'
 
 const Context = createContext();
 
 const { Provider } = Context;
 
-const TabList = ({ children }) => {
+const TabList = ({ children, className }) => {
   const { useTabListStyles } = useContext(SystemContext);
   const theme = useTheme();
   const classes = useTabListStyles({ theme });
   return (
     <AnimateSharedLayout>
-      <div className={classes.tabList}>{children}</div>
+      <div className={cx( classes.tabList, className )}>{children}</div>
     </AnimateSharedLayout>
   );
 };
 
-const Tab = ({ children, tabKey, ...props }) => {
+const Tab = ({ children, tabKey, className, ...props }) => {
   const { setActive, active } = useContext(Context);
   const isActive = tabKey === active;
   const { useTabStyles } = useContext(SystemContext);
@@ -29,7 +30,7 @@ const Tab = ({ children, tabKey, ...props }) => {
     <div className={classes.tab}>
       <Button
         {...props}
-        className={classes.button}
+        className={cx(classes.button, className)}
         onClick={() => setActive(tabKey)}
       >
         {children}
@@ -62,7 +63,7 @@ const TabPanels = ({ children, ...props }) => {
   );
 };
 
-const TabPanel = ({ children, ...props }) => {
+const TabPanel = ({ children, tabKey, ...props }) => {
   const { useTabPanelStyles } = useContext(SystemContext);
   const classes = useTabPanelStyles();
   return (
