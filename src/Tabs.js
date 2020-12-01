@@ -63,13 +63,13 @@ const TabPanels = ({ children, ...props }) => {
   );
 };
 
-const TabPanel = ({ children, tabKey, ...props }) => {
+const TabPanel = ({ children, tabKey, className, ...props }) => {
   const { useTabPanelStyles } = useContext(SystemContext);
   const classes = useTabPanelStyles();
   return (
     <div
       {...props}
-      className={classes.tabPanel}
+      className={cx(classes.tabPanel, className)}
     >
       {children}
     </div>
