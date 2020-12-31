@@ -3,23 +3,24 @@ import { useTheme } from "react-jss";
 import SystemContext from "./SystemContext";
 import cx from 'classnames'
 
-const Input = ({ value, onChange, type = "text", label, className }) => {
+const Textarea = ({ value, onChange, type = "text", label, className, rows }) => {
   const val = value ?? ""
   const active = val !== "";
   const system = useContext(SystemContext);
   const theme = useTheme()
-  const classes = system.useInputStyles({ active, theme });
+  const classes = system.useTextareaStyles({ active, theme });
   return (
     <div className={cx(classes.wrapper, className)}>
-      <input
+      <textarea
+        rows={rows}
         type={type}
         value={val}
         onChange={onChange}
-        className={classes.input}
+        className={classes.textarea}
       />
       <label className={classes.label}>{label}</label>
     </div>
   );
 };
 
-export default Input;
+export default Textarea;
