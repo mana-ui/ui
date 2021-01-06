@@ -60,17 +60,13 @@ export const DialogFooter = ({ children }) => {
   return footer && createPortal(children, footer)
 }
 
-export const useDialog = () => {
-  return useContext(Context);
-};
-
 const Context = createContext();
 
 export const DialogContainer = ({ children }) => {
   const [content, setContent] = useState(null);
   return (
     <>
-      <Context.Provider value={setContent}>{children}</Context.Provider>
+      <Context.Provider value={setContent}>{children(setContent)}</Context.Provider>
       <AnimatePresence>
       {content &&
         cloneElement(content, {
