@@ -1,6 +1,7 @@
 import React, { createContext, forwardRef, useContext, useLayoutEffect, useRef, useState } from "react";
 import { useTheme } from "react-jss";
 import SystemContext from "./SystemContext";
+import cx from 'classnames'
 
 const Context = createContext();
 
@@ -44,7 +45,7 @@ const DropDown = forwardRef(({ classes, options, activeValue, onChange }, ref) =
   );
 });
 
-export const Select = ({ children, value, onChange, ...props }) => {
+export const Select = ({className, children, value, onChange, ...props }) => {
   const options = [];
   const [show, setShow] = useState(false);
   const selectedRef = useRef()
@@ -77,7 +78,7 @@ export const Select = ({ children, value, onChange, ...props }) => {
     >
       {children}
       <div
-        className={classes.wrapper}
+        className={cx(classes.wrapper, className)}
         onClick={() => {
           if (show === false) setShow(true);
         }}
