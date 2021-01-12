@@ -2,10 +2,11 @@ import React, { createContext, forwardRef, useContext, useLayoutEffect, useRef, 
 import { useTheme } from "react-jss";
 import SystemContext from "./SystemContext";
 import cx from 'classnames'
+import {usePopper} from 'react-popper'
 
 const Context = createContext();
 
-const Container = forwardRef(({ options, value, label, classes, setFocus }, ref) => {
+const Container = forwardRef(({ options, value, label, classes }, ref) => {
   return (
     <>
       <div ref={ref} tabIndex={0} className={classes.selected}>
@@ -27,9 +28,9 @@ const ListItem = ({ children, active, onClick }) => {
   );
 };
 
-const DropDown = forwardRef(({ classes, options, activeValue, onChange }, ref) => {
+const DropDown = forwardRef(({ classes, options, activeValue, onChange, style }, ref) => {
   return (
-    <div className={classes.dropdown} ref={ref}>
+    <div style={style} className={classes.dropdown} ref={ref}>
       {options.map(({ children, value }) => (
         <ListItem
           key={value}
@@ -49,7 +50,7 @@ export const Select = ({className, children, value, onChange, ...props }) => {
   const options = [];
   const [show, setShow] = useState(false);
   const selectedRef = useRef()
-  const dropdownRef = useRef()
+  const bubbleThroughRef = useRef(false)
   const system = useContext(SystemContext);
   const theme = useTheme();
   const classes = system.useSelectStyles({
@@ -59,10 +60,10 @@ export const Select = ({className, children, value, onChange, ...props }) => {
   });
   useLayoutEffect(() => {
     if (show) {
-        const handler = (evt) => {
-            if (!dropdownRef.current.contains(evt.target)) {
-                setShow(false)
-            }
+        const handler = () => {
+          if (bubbleThroughRef.current === false)
+            setShow(false)
+          bubbleThroughRef.current = false
         }
         document.addEventListener('click', handler)
         return () => {
@@ -70,6 +71,10 @@ export const Select = ({className, children, value, onChange, ...props }) => {
         }
     }
   }, [show])
+
+  const [referenceElement, setReferenceElement] = useState(null)
+  const [popperElement, setPopperElement] = useState(null)
+  const {styles} = usePopper(referenceElement, popperElement)
   return (
     <Context.Provider
       value={(option) => {
@@ -80,8 +85,12 @@ export const Select = ({className, children, value, onChange, ...props }) => {
       <div
         className={cx(classes.wrapper, className)}
         onClick={() => {
-          if (show === false) setShow(true);
+          if (show)
+            bubbleThroughRef.current = true
+          else
+            setShow(true)
         }}
+        ref={setReferenceElement}
       >
         <Container
             ref={selectedRef}
@@ -91,9 +100,9 @@ export const Select = ({className, children, value, onChange, ...props }) => {
           show={show}
           {...props}
         />
-        {show && (
-          <DropDown
-            ref={dropdownRef}
+          {show && <DropDown
+            ref={setPopperElement}
+            style={styles.popper}
             options={options}
             classes={classes}
             activeValue={value}
@@ -102,8 +111,7 @@ export const Select = ({className, children, value, onChange, ...props }) => {
               onChange(v);
               setShow(false);
             }}
-          />
-        )}
+          />}
       </div>
     </Context.Provider>
   );
