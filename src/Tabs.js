@@ -1,22 +1,45 @@
-import React, { Children, createContext, useContext } from "react";
+import React, { Children, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "react-jss";
 import Button from "./Button";
 import SystemContext from "./SystemContext";
-import { AnimateSharedLayout, motion } from "framer-motion";
-import cx from 'classnames'
+import { AnimatePresence, AnimateSharedLayout, motion, useIsPresent } from "framer-motion";
+import cx from "classnames";
 
 const Context = createContext();
 
 const { Provider } = Context;
 
-const TabList = ({ children, className }) => {
+const TabListContext = createContext();
+
+const Indicator = ({ className }) => {
+  const theme = useTheme();
+  const { useTabStyles } = useContext(SystemContext);
+  const classes = useTabStyles({ theme });
+  return (
+    <motion.div
+      layoutId="indicator"
+      className={cx(classes.indicator, className)}
+      initial={false}
+      transition={{ ease: [0.4, 0, 0.2, 1] }}
+    />
+  );
+};
+
+const TabList = ({ children, className, indicator }) => {
   const { useTabListStyles } = useContext(SystemContext);
   const theme = useTheme();
   const classes = useTabListStyles({ theme });
+  const context = useMemo(() => {
+    return {
+      indicator: indicator ?? <Indicator />,
+    };
+  }, [indicator]);
   return (
-    <AnimateSharedLayout>
-      <div className={cx( classes.tabList, className )}>{children}</div>
-    </AnimateSharedLayout>
+    <TabListContext.Provider value={context}>
+      <div className={cx(classes.tabList, className)}>
+        <AnimateSharedLayout>{children}</AnimateSharedLayout>
+      </div>
+    </TabListContext.Provider>
   );
 };
 
@@ -26,8 +49,9 @@ const Tab = ({ children, tabKey, className, ...props }) => {
   const { useTabStyles } = useContext(SystemContext);
   const theme = useTheme();
   const classes = useTabStyles({ active: isActive, theme });
+  const { indicator } = useContext(TabListContext);
   return (
-    <div className={classes.tab}>
+    <motion.div layout className={classes.tab}>
       <Button
         {...props}
         className={cx(classes.button, className)}
@@ -35,30 +59,66 @@ const Tab = ({ children, tabKey, className, ...props }) => {
       >
         {children}
       </Button>
-      {isActive && (
-        <motion.div
-          layoutId="indicator"
-          className={classes.indicator}
-          initial={false}
-          transition={{ ease: [0.4, 0, 0.2, 1] }}
-        />
-      )}
-    </div>
+      {isActive && indicator}
+    </motion.div>
   );
 };
 
-const TabPanels = ({ children, ...props }) => {
+export const Fade = ({ children, activeKey, ...props }) => {
+  const initial = (exit = { opacity: 0 });
+  const animate = { opacity: 1 };
+  return (
+    <AnimatePresence initial={false}>
+      <motion.div
+        key={activeKey}
+        {...props}
+        initial={initial}
+        animate={animate}
+        exit={exit}
+        transition="ease"
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
+const Slide = ({ children, activeKey, ...props }) => {
+  return (
+    <AnimatePresence initial={false}>
+      <motion.div
+        key={activeKey}
+        {...props}
+        style={{position: 'absolute', inset: 0}}
+        initial={{ x: "100%"}}
+        animate={{x: 0}}
+        exit={{ x: "-100%" }}
+        transition={{ type: "ease"}}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
+const TabPanels = ({
+  children,
+  className,
+  animation = <Slide />,
+  ...props
+}) => {
   const { active } = useContext(Context);
   const { useTabPanelsStyles } = useContext(SystemContext);
   const classes = useTabPanelsStyles();
-  children = Children.toArray(children)
-  const activeIndex = children.findIndex(({props: {tabKey}}) => tabKey === active)
-  const x = activeIndex * 100 / children.length 
+  children = Children.toArray(children);
+  children = children.find(({ props: { tabKey } }) => tabKey === active);
   return (
-    <div className={classes.tabPanels} {...props}>
-      <motion.div className={classes.scroll} style={{width: `${children.length*100}%`}} initial={{x: 0}} animate={ {x: `-${x}%`} } transition="ease" >
-      {children}
-      </motion.div>
+    <div className={cx(classes.tabPanels, className)} {...props}>
+      {React.cloneElement(
+        animation,
+        { ...animation.props, activeKey: active, className: classes.scroll },
+        children
+      )}
     </div>
   );
 };
@@ -67,17 +127,18 @@ const TabPanel = ({ children, tabKey, className, ...props }) => {
   const { useTabPanelStyles } = useContext(SystemContext);
   const classes = useTabPanelStyles();
   return (
-    <div
-      {...props}
-      className={cx(classes.tabPanel, className)}
-    >
+    <div {...props} className={cx(classes.tabPanel, className)}>
       {children}
     </div>
   );
 };
 
 const Tabs = ({ children, active, setActive, ...props }) => {
-  return <Provider value={{ active, setActive }}><div {...props}>{children}</div></Provider>;
+  return (
+    <Provider value={{ active, setActive }}>
+      <div {...props}>{children}</div>
+    </Provider>
+  );
 };
 
-export { Tabs, TabList, TabPanels, Tab, TabPanel };
+export { Tabs, TabList, TabPanels, Tab, TabPanel, Indicator };
