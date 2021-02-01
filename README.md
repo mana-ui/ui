@@ -6,19 +6,19 @@ One more react UI components library
 ## Install
 
 ``` shell
-pnpm add @mana-ui/ui @mana-ui/md
+pnpm add @mana-ui/ui @mana-ui/md react-jss
 ```
 
 or
 
 ``` shell
-yarn add @mana-ui/ui @mana-ui/md
+yarn add @mana-ui/ui @mana-ui/md react-jss
 ```
 
 or
 
 ``` shell
-npm install @mana-ui/ui @mana-ui/md
+npm install @mana-ui/ui @mana-ui/md react-jss
 ```
 
 ## Configure Design System
@@ -33,3 +33,18 @@ const App = () => (
 )
 
 ```
+
+## Configure CSS order
+
+The order of CSS rules may affect application apperance, you can set CSS insertion point by placing a comment node.
+
+Mana UI uses 'mana-insertion-point' as the insertion potin opinionatedly.
+
+``` html
+<head>
+    <!-- mana-insertion-point -->
+    <link href="...">
+</head>
+```
+
+To make sure the insertion point works, we should keep using the same JSS instance from JSS context, so we take react-jss as peer dependency, which will be resolved from the same location across all Mana UI packages.
