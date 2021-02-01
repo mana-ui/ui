@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "main": "src/index.js",
   "dependencies": {
+    "@mana-ui/lib": "^0.1.0",
     "@popperjs/core": "^2.6.0",
     "classnames": "^2.2.6",
     "framer-motion": "^2.6.13",
