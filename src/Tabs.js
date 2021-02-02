@@ -1,9 +1,9 @@
-import React, { Children, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { useTheme } from "react-jss";
+import cx from "classnames";
+import { AnimatePresence, AnimateSharedLayout, motion } from "framer-motion";
+import React, { Children, createContext, useContext, useMemo } from "react";
+import { createUseStyles, useTheme } from "react-jss";
 import Button from "./Button";
 import SystemContext from "./SystemContext";
-import { AnimatePresence, AnimateSharedLayout, motion, useIsPresent } from "framer-motion";
-import cx from "classnames";
 
 const Context = createContext();
 
@@ -83,13 +83,23 @@ export const Fade = ({ children, activeKey, ...props }) => {
   );
 };
 
-const Slide = ({ children, activeKey, ...props }) => {
+const useSlideStyles = createUseStyles({
+  slide: {
+    '& + &': {
+      position: 'relative',
+      top: '-100%',
+    }
+  }
+})
+
+const Slide = ({ children, activeKey, className, ...props }) => {
+  const classes = useSlideStyles()
   return (
     <AnimatePresence initial={false}>
       <motion.div
         key={activeKey}
         {...props}
-        style={{position: 'absolute', inset: 0}}
+        className={cx(classes.slide, className)}
         initial={{ x: "100%"}}
         animate={{x: 0}}
         exit={{ x: "-100%" }}
