@@ -6,19 +6,19 @@ One more react UI components library
 ## Install
 
 ``` shell
-pnpm add @mana-ui/ui @mana-ui/md react-jss
+pnpm add @mana-ui/ui @mana-ui/material react-jss
 ```
 
 or
 
 ``` shell
-yarn add @mana-ui/ui @mana-ui/md react-jss
+yarn add @mana-ui/ui @mana-ui/material react-jss
 ```
 
 or
 
 ``` shell
-npm install @mana-ui/ui @mana-ui/md react-jss
+npm install @mana-ui/ui @mana-ui/material react-jss
 ```
 
 ## Configure Design System
