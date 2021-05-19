@@ -50,7 +50,7 @@ export const Select = ({className, children, value, onChange, ...props }) => {
   const options = [];
   const [show, setShow] = useState(false);
   const selectedRef = useRef()
-  const bubbleThroughRef = useRef(false)
+  const wrapperRef = useRef()
   const system = useContext(SystemContext);
   const theme = useTheme();
   const classes = system.useSelectStyles({
@@ -60,10 +60,9 @@ export const Select = ({className, children, value, onChange, ...props }) => {
   });
   useLayoutEffect(() => {
     if (show) {
-        const handler = () => {
-          if (bubbleThroughRef.current === false)
+        const handler = ({target}) => {
+          if (!wrapperRef.current.contains(target) )
             setShow(false)
-          bubbleThroughRef.current = false
         }
         document.addEventListener('click', handler)
         return () => {
@@ -72,9 +71,8 @@ export const Select = ({className, children, value, onChange, ...props }) => {
     }
   }, [show])
 
-  const [referenceElement, setReferenceElement] = useState(null)
   const [popperElement, setPopperElement] = useState(null)
-  const {styles} = usePopper(referenceElement, popperElement)
+  const {styles} = usePopper(wrapperRef.current, popperElement)
   return (
     <Context.Provider
       value={(option) => {
@@ -83,14 +81,12 @@ export const Select = ({className, children, value, onChange, ...props }) => {
     >
       {children}
       <div
+        ref={wrapperRef}
         className={cx(classes.wrapper, className)}
         onClick={() => {
-          if (show)
-            bubbleThroughRef.current = true
-          else
-            setShow(true)
+            if (show === false)
+                setShow(true)
         }}
-        ref={setReferenceElement}
       >
         <Container
             ref={selectedRef}
@@ -108,7 +104,8 @@ export const Select = ({className, children, value, onChange, ...props }) => {
             activeValue={value}
             onChange={(v) => {
                 selectedRef.current.focus()
-              onChange(v);
+                if (onChange)
+                    onChange(v);
               setShow(false);
             }}
           />}
