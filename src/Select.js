@@ -6,13 +6,14 @@ import {usePopper} from 'react-popper'
 
 const Context = createContext();
 
-const Container = forwardRef(({ options, value, label, classes }, ref) => {
+const Container = forwardRef(({ options, value, label, classes,suffix }, ref) => {
   return (
     <>
       <div ref={ref} tabIndex={0} className={classes.selected}>
         {options.find((option) => option.value === value)?.children}
       </div>
       <label className={classes.label}>{label}</label>
+      <span className={classes.suffix}>{suffix}</span>
     </>
   );
 });
