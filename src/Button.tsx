@@ -1,23 +1,21 @@
 import React, { useContext } from "react";
 import { useRipple } from "@mana-ui/lib";
 import SystemContext from "./SystemContext";
-import cx from "classnames";
 import {useTheme} from 'react-jss'
 
 const Button = ({ children, className, ...props }) => {
-  const theme = useTheme()
+  const theme = useTheme() as any
   const [surface, ripple] = useRipple(theme.color.primary);
-  const system = useContext(SystemContext)
-  const classes = system.useButtonStyles({theme})
+  const {Button: Btn} = useContext(SystemContext)
   return (
-    <button
+    <Btn
       {...props}
       ref={surface}
-      className={cx( classes.button, className )}
+      className={className}
     >
       {children}
       {ripple}
-    </button>
+    </Btn>
   );
 };
 
