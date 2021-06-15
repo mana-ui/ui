@@ -2,7 +2,6 @@ import cx from "classnames";
 import { AnimatePresence, AnimateSharedLayout, motion } from "framer-motion";
 import React, { Children, createContext, useContext, useMemo } from "react";
 import { createUseStyles, useTheme } from "react-jss";
-import Button from "./Button";
 import SystemContext from "./SystemContext";
 
 const Context = createContext();
@@ -46,19 +45,19 @@ const TabList = ({ children, className, indicator }) => {
 const Tab = ({ children, tabKey, className, ...props }) => {
   const { setActive, active } = useContext(Context);
   const isActive = tabKey === active;
-  const { useTabStyles } = useContext(SystemContext);
+  const { useTabStyles, TabButton } = useContext(SystemContext);
   const theme = useTheme();
   const classes = useTabStyles({ active: isActive, theme });
   const { indicator } = useContext(TabListContext);
   return (
     <motion.div layout className={classes.tab}>
-      <Button
+      <TabButton
         {...props}
-        className={cx(classes.button, className)}
+        className={className}
         onClick={() => setActive(tabKey)}
       >
         {children}
-      </Button>
+      </TabButton>
       {isActive && indicator}
     </motion.div>
   );

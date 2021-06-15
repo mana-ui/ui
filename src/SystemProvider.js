@@ -11,9 +11,10 @@ const SystemProvider = ({ theme, system, children }) => {
   return (
     <JssProvider jss={jss}>
       <JssThemeProvider theme={mergedTheme}>
+	      <ThemeProvider theme={mergedTheme}>
         <SystemContext.Provider value={system}>
-          <ThemeProvider theme={mergedTheme}>{children}</ThemeProvider>
-        </SystemContext.Provider>
+          {children}
+        </SystemContext.Provider></ThemeProvider>
       </JssThemeProvider>
     </JssProvider>
   );
