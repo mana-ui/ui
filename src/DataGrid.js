@@ -4,7 +4,7 @@ import cx from "classnames";
 
 const Context = createContext();
 
-const Container = ({ columnProps, data, rowKey, className }) => {
+const Container = ({ columnProps, data=[], rowKey, className }) => {
   const system = useContext(SystemContext);
   const classes = system.useDataGridStyles();
   const headers = [],
