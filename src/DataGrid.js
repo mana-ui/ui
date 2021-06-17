@@ -4,8 +4,9 @@ import cx from "classnames";
 
 const Context = createContext();
 
-const Container = ({ columnProps, data=[], rowKey, className }) => {
+const Container = ({ columnProps, data=[], rowKey, className, empty = "No Data" }) => {
   const system = useContext(SystemContext);
+	const {Empty} = system
   const classes = system.useDataGridStyles();
   const headers = [],
     columns = [];
@@ -31,7 +32,7 @@ const Container = ({ columnProps, data=[], rowKey, className }) => {
           </tr>
         </thead>
         <tbody className={classes.tbody}>
-          {data.map((d) => (
+          {data.length > 0 ? data.map((d) => (
             <tr key={d[rowKey]} className={classes.tr}>
               {columns.map(({ render, key }) => (
                 <td key={key} className={cx(classes.cell, classes.td)}>
@@ -39,8 +40,7 @@ const Container = ({ columnProps, data=[], rowKey, className }) => {
                 </td>
               ))}
             </tr>
-          ))}
-          <tr></tr>
+          )): <tr className={classes.tr}><td colSpan={columns.length}><Empty>{empty}</Empty></td></tr>}
         </tbody>
       </table>
     </div>
