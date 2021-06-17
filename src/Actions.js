@@ -1,12 +1,9 @@
-import React, { useContext } from 'react'
-import SystemContext from './SystemContext'
+import React, { useContext } from "react";
+import SystemContext from "./SystemContext";
 
-const Actions = ({children}) => {
-    const system = useContext(SystemContext)
-    const classes = system.useActionsStyles()
-  return (
-      <div className={classes.actions}>{children}</div>
-  )
-}
+const Actions = ({ children }) => {
+  const { Actions } = useContext(SystemContext);
+  return <Actions>{children}</Actions>;
+};
 
-export default Actions
+export default Actions;

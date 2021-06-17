@@ -9,6 +9,7 @@ import React, {
 import { createPortal } from "react-dom";
 import SystemContext from "./SystemContext";
 import cx from 'classnames'
+import {css} from '@emotion/react'
 
 const DialogContext = createContext()
 
@@ -16,8 +17,8 @@ export const Dialog = ({ title, children, className }) => {
   const [container, setContainer] = useState(null);
   const [footer, setFooter] = useState(null)
   const system = useContext(SystemContext);
+  const {Actions} = system
   const classes = system.useDialogStyles();
-  const actionsClasses = system.useActionsStyles()
   useEffect(() => {
     const div = document.createElement("div");
     document.body.appendChild(div);
@@ -46,7 +47,7 @@ export const Dialog = ({ title, children, className }) => {
           <div className={classes.content}>
             {children}
           </div>
-          <footer ref={setFooter} className={actionsClasses.actions}></footer>
+          <Actions as="footer" ref={setFooter} />
           </DialogContext.Provider>
         </div>
       </motion.div>,
