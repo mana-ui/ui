@@ -1,67 +1,40 @@
-import React, { createContext, useContext } from "react";
+import React, { useContext } from "react";
 import SystemContext from "./SystemContext";
 import cx from "classnames";
 
-const Context = createContext();
 
-const Container = ({ columnProps, data=[], rowKey, className, empty = "No Data" }) => {
-  const system = useContext(SystemContext);
+export const DataGrid = ({ children,  data=[], rowKey, className, empty = "No Data" }) => {
+	const system = useContext(SystemContext);
 	const {Empty} = system
   const classes = system.useDataGridStyles();
-  const headers = [],
-    columns = [];
-  for (const { header, render, key: k } of columnProps) {
-    let key = k ?? typeof render === "function" ? null : render;
-    headers.push({ header, key });
-    if (typeof render === "function") {
-      columns.push({ render, key });
-    } else {
-      columns.push({ render: (d) => d[render], key });
-    }
-  }
   return (
-    <div className={cx(classes.container, className)}>
+      <div className={cx(classes.container, className)}>
       <table className={classes.table}>
         <thead>
           <tr className={classes.headerRow}>
-            {headers.map(({ header, key }) => (
-              <th key={key} className={cx(classes.cell, classes.th)}>
-                {header}
-              </th>
-            ))}
+						{children}
           </tr>
         </thead>
         <tbody className={classes.tbody}>
           {data.length > 0 ? data.map((d) => (
             <tr key={d[rowKey]} className={classes.tr}>
-              {columns.map(({ render, key }) => (
-                <td key={key} className={cx(classes.cell, classes.td)}>
-                  {render(d)}
-                </td>
-              ))}
+							{React.Children.map(children, ({props: {render}}) => {
+								if (typeof render!=='function') {
+									let r = render
+									render = d => d[r]
+								}
+							return <td className={cx(classes.cell, classes.td)}>{render(d)}</td>
+							})}
             </tr>
-          )): <tr className={classes.tr}><td colSpan={columns.length}><Empty>{empty}</Empty></td></tr>}
+          )): <tr className={classes.tr}><td colSpan={React.Children.count(children)}><Empty>{empty}</Empty></td></tr>}
         </tbody>
       </table>
     </div>
   );
 };
 
-export const DataGrid = ({ children, ...props }) => {
-  const columns = [];
-  const setColumn = (column) => {
-    columns.push(column);
-  };
-  return (
-    <Context.Provider value={setColumn}>
-      {children}
-      <Container columnProps={columns} {...props} />
-    </Context.Provider>
-  );
-};
-
-export const Column = (props) => {
-  const setColumn = useContext(Context);
-  setColumn(props);
-  return null;
+export const Column = ({header}) => {
+	const system = useContext(SystemContext);
+  const classes = system.useDataGridStyles();
+  return <th className={cx(classes.cell, classes.th)}>{header}</th>;
 };
