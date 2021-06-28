@@ -10,7 +10,7 @@ export const Dialog = ({ title, children, className }) => {
   const [container, setContainer] = useState(null);
   const [footer, setFooter] = useState(null);
   const system = useContext(SystemContext);
-  const { Actions } = system;
+  const { DialogFooter } = system;
   const classes = system.useDialogStyles();
   useEffect(() => {
     const div = document.createElement("div");
@@ -38,7 +38,7 @@ export const Dialog = ({ title, children, className }) => {
           <h2 className={classes.title}>{title}</h2>
           <DialogContext.Provider value={footer}>
             <div className={classes.content}>{children}</div>
-            <Actions as="footer" ref={setFooter} />
+            <DialogFooter as="footer" ref={setFooter} />
           </DialogContext.Provider>
         </div>
       </motion.div>,

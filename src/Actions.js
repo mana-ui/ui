@@ -1,9 +1,9 @@
 import React, { useContext } from "react";
 import SystemContext from "./SystemContext";
 
-const Actions = ({ children }) => {
+const Actions = (props) => {
   const { Actions } = useContext(SystemContext);
-  return <Actions>{children}</Actions>;
+  return <Actions {...props}/>;
 };
 
 export default Actions;
