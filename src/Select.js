@@ -12,6 +12,8 @@ import SystemContext from "./SystemContext";
 import cx from "classnames";
 import { usePopper } from "react-popper";
 import { AnimatePresence, motion } from "framer-motion";
+import maxSize from 'popper-max-size-modifier'
+import {css} from '@emotion/react'
 
 const Context = createContext();
 
@@ -66,8 +68,9 @@ const DropDown = forwardRef(function DropDown(
   ref
 ) {
   return (
-    <div style={style} className={classes.popRef} ref={ref}>
+    <div style={style} className={classes.popRef} css={css`display: flex; align-items: stretch`} ref={ref}>
       <motion.div
+				css={css`flex: 1; overflow: auto;`}
         className={classes.dropdown}
         transition={{ ease: [0.4, 0, 0.2, 1] }}
         variants={variants}
@@ -105,6 +108,20 @@ const sameWidth = {
     }px`;
   }
 };
+
+const applyMaxSize = {
+	name: 'applyMaxSize',
+	enabled: true,
+	phase: 'beforeWrite',
+	requires: ['maxSize'],
+	fn({state}) {
+		const {height} = state.modifiersData.maxSize
+		state.styles.popper = {
+			...state.styles.popper,
+			maxHeight: `${height-96}px`
+		}
+	}
+}
 
 export const Select = ({ className, children, value, onChange, ...props }) => {
   const options = [];
@@ -144,7 +161,7 @@ export const Select = ({ className, children, value, onChange, ...props }) => {
   );
   const { styles } = usePopper(wrapperRef.current, popperElement, {
 		strategy: 'fixed',
-    modifiers: [offsetModifer, sameWidth],
+    modifiers: [offsetModifer, sameWidth, maxSize, applyMaxSize],
   });
   return (
     <Context.Provider
