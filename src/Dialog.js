@@ -1,25 +1,34 @@
 import cx from "classnames";
-import { motion } from "framer-motion";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { motion ,AnimatePresence} from "framer-motion";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import SystemContext from "./SystemContext";
 
 const DialogContext = createContext();
 
-export const Dialog = ({ title, children, className }) => {
+export const DialogTrigger = ({children, content, ...props}) => {
+	const [state, setState] = useState(false)
   const [container, setContainer] = useState(null);
+	useEffect(() => {
+		if (state) {
+			const div = document.createElement("div");
+			document.body.appendChild(div);
+			setContainer(div);
+		}
+  }, [state]);
+	const toggle = useCallback(() => setState(state => !state))
+	return <>{children(toggle)}<AnimatePresence onExitComplete={() => {
+		document.body.removeChild(container);
+		setContainer(null)
+	}}>{state && <Dialog {...props} container={container}>{content(toggle)}</Dialog>}</AnimatePresence></>
+}
+
+export const Dialog = ({ title, children, className, container }) => {
   const [footer, setFooter] = useState(null);
   const system = useContext(SystemContext);
   const { DialogFooter } = system;
   const classes = system.useDialogStyles();
-  useEffect(() => {
-    const div = document.createElement("div");
-    document.body.appendChild(div);
-    setContainer(div);
-    return () => {
-      document.body.removeChild(div);
-    };
-  }, []);
+  
   const variants = {
     enter: { opacity: 1, transition: { duration: 0.15, ease: "linear" } },
     leave: { opacity: 0, transition: { duration: 0.075, ease: "linear" } },
