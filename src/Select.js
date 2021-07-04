@@ -2,6 +2,7 @@ import React, {
   createContext,
   forwardRef,
   useContext,
+  useImperativeHandle,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -12,19 +13,35 @@ import SystemContext from "./SystemContext";
 import cx from "classnames";
 import { usePopper } from "react-popper";
 import { AnimatePresence, motion } from "framer-motion";
-import maxSize from 'popper-max-size-modifier'
-import {css} from '@emotion/react'
+import maxSize from "popper-max-size-modifier";
+import { css } from "@emotion/react";
 
 const Context = createContext();
 
 const Container = forwardRef(function SelectContainer(
-  { options, value, label, classes, suffix },
+  { options, value, label, classes, suffix, show, search, kw, setKw },
   ref
 ) {
+  const selectedRef = useRef();
+  const inputRef = useRef();
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      (inputRef.current ?? selectedRef.current).focus();
+    },
+  }));
   return (
     <>
-      <div ref={ref} tabIndex={0} className={classes.selected}>
-        {options.find((option) => option.value === value)?.children}
+      <div ref={selectedRef} tabIndex={0} className={classes.selected}>
+        {show && search ? (
+          <input
+            ref={inputRef}
+            value={kw}
+            onChange={({ target: { value } }) => setKw(value)}
+            className={classes.input}
+          />
+        ) : (
+          options.find((option) => option.value === value)?.children
+        )}
       </div>
       <label className={classes.label}>{label}</label>
       <span className={classes.suffix}>{suffix}</span>
@@ -64,13 +81,24 @@ const variants = {
   },
 };
 const DropDown = forwardRef(function DropDown(
-  { classes, options, activeValue, onChange, style },
+  { classes, options, activeValue, onChange, style, kw },
   ref
 ) {
   return (
-    <div style={style} className={classes.popRef} css={css`display: flex; align-items: stretch`} ref={ref}>
+    <div
+      style={style}
+      className={classes.popRef}
+      css={css`
+        display: flex;
+        align-items: stretch;
+      `}
+      ref={ref}
+    >
       <motion.div
-				css={css`flex: 1; overflow: auto;`}
+        css={css`
+          flex: 1;
+          overflow: auto;
+        `}
         className={classes.dropdown}
         transition={{ ease: [0.4, 0, 0.2, 1] }}
         variants={variants}
@@ -78,17 +106,21 @@ const DropDown = forwardRef(function DropDown(
         animate={["enterFade", "enterScale"]}
         exit={["leaveFade", "leaveScale"]}
       >
-        {options.map(({ children, value }) => (
-          <ListItem
-            key={value}
-            active={activeValue === value}
-            onClick={() => {
-              onChange(value);
-            }}
-          >
-            {children}
-          </ListItem>
-        ))}
+        {options
+          .filter(({ children }) =>
+            children.toLowerCase().includes(kw.toLowerCase())
+          )
+          .map(({ children, value }) => (
+            <ListItem
+              key={value}
+              active={activeValue === value}
+              onClick={() => {
+                onChange(value);
+              }}
+            >
+              {children}
+            </ListItem>
+          ))}
       </motion.div>
     </div>
   );
@@ -103,27 +135,33 @@ const sameWidth = {
     state.styles.popper.width = `${state.rects.reference.width}px`;
   },
   effect: ({ state }) => {
-    state.elements.popper.style.width = `${
-      state.elements.reference.offsetWidth
-    }px`;
-  }
+    state.elements.popper.style.width = `${state.elements.reference.offsetWidth}px`;
+  },
 };
 
 const applyMaxSize = {
-	name: 'applyMaxSize',
-	enabled: true,
-	phase: 'beforeWrite',
-	requires: ['maxSize'],
-	fn({state}) {
-		const {height} = state.modifiersData.maxSize
-		state.styles.popper = {
-			...state.styles.popper,
-			maxHeight: `${height-96}px`
-		}
-	}
-}
+  name: "applyMaxSize",
+  enabled: true,
+  phase: "beforeWrite",
+  requires: ["maxSize"],
+  fn({ state }) {
+    const { height } = state.modifiersData.maxSize;
+    state.styles.popper = {
+      ...state.styles.popper,
+      maxHeight: `${height - 96}px`,
+    };
+  },
+};
 
-export const Select = ({ className, children, value, onChange, ...props }) => {
+export const Select = ({
+  className,
+  style,
+  children,
+  value,
+  onChange,
+  search,
+  ...props
+}) => {
   const options = [];
   const [show, setShow] = useState(false);
   const selectedRef = useRef();
@@ -137,6 +175,9 @@ export const Select = ({ className, children, value, onChange, ...props }) => {
   });
   useLayoutEffect(() => {
     if (show) {
+      if (search) {
+        selectedRef.current.focus();
+      }
       const handler = ({ target }) => {
         if (!wrapperRef.current.contains(target)) setShow(false);
       };
@@ -153,16 +194,17 @@ export const Select = ({ className, children, value, onChange, ...props }) => {
       name: "offset",
       options: {
         offset: ({ placement, reference, popper }) => {
-          return [0, -reference.height / 2];
+          return [0, search ? 0 : -reference.height / 2];
         },
       },
     }),
     []
   );
   const { styles } = usePopper(wrapperRef.current, popperElement, {
-		strategy: 'fixed',
+    strategy: "fixed",
     modifiers: [offsetModifer, sameWidth, maxSize, applyMaxSize],
   });
+  const [kw, setKw] = useState("");
   return (
     <Context.Provider
       value={(option) => {
@@ -171,6 +213,7 @@ export const Select = ({ className, children, value, onChange, ...props }) => {
     >
       {children}
       <div
+        style={style}
         ref={wrapperRef}
         className={cx(classes.wrapper, className)}
         onClick={() => {
@@ -183,6 +226,9 @@ export const Select = ({ className, children, value, onChange, ...props }) => {
           options={options}
           classes={classes}
           show={show}
+          search={search}
+          kw={kw}
+          setKw={setKw}
           {...props}
         />
         <AnimatePresence>
@@ -198,6 +244,7 @@ export const Select = ({ className, children, value, onChange, ...props }) => {
                 if (onChange) onChange(v);
                 setShow(false);
               }}
+              kw={kw}
             />
           )}
         </AnimatePresence>
