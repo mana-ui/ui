@@ -11,6 +11,12 @@ const Th = styled.th`
 	box-shadow: inset 0 -1px 0 rgba(0,0,0,.12);
 	z-index: 1;
 `
+const Tr = styled.tr`
+	border-bottom: 1px solid rgba(0,0,0,.12);
+	&:last-of-type {
+		border: none;
+	}
+`
 
 export const DataGrid = ({ children,  data=[], rowKey, className, empty = "No Data" }) => {
 	const system = useContext(SystemContext);
@@ -26,7 +32,7 @@ export const DataGrid = ({ children,  data=[], rowKey, className, empty = "No Da
         </thead>
         <tbody className={classes.tbody}>
           {data.length > 0 ? data.map((d) => (
-            <tr key={d[rowKey]} className={classes.tr}>
+            <Tr key={d[rowKey]}>
 							{React.Children.map(children, ({props: {render}}) => {
 								if (typeof render!=='function') {
 									let r = render
@@ -34,7 +40,7 @@ export const DataGrid = ({ children,  data=[], rowKey, className, empty = "No Da
 								}
 							return <td className={cx(classes.cell, classes.td)}>{render(d)}</td>
 							})}
-            </tr>
+            </Tr>
           )): <tr className={classes.tr}><td colSpan={React.Children.count(children)}><Empty>{empty}</Empty></td></tr>}
         </tbody>
       </table>
