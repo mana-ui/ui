@@ -6,7 +6,7 @@ import SystemContext from "./SystemContext";
 
 const DialogContext = createContext();
 
-export const DialogTrigger = ({children, content, ...props}) => {
+export const Dialog = ({children, content, ...props}) => {
 	const [state, setState] = useState(false)
   const [container, setContainer] = useState(null);
 	useEffect(() => {
@@ -20,10 +20,10 @@ export const DialogTrigger = ({children, content, ...props}) => {
 	return <>{children(toggle)}<AnimatePresence onExitComplete={() => {
 		document.body.removeChild(container);
 		setContainer(null)
-	}}>{state && <Dialog {...props} container={container}>{content(toggle)}</Dialog>}</AnimatePresence></>
+	}}>{state && <DialogPortal {...props} container={container}>{content(toggle)}</DialogPortal>}</AnimatePresence></>
 }
 
-export const Dialog = ({ title, children, className, container }) => {
+export const DialogPortal = ({ title, children, className, container }) => {
   const [footer, setFooter] = useState(null);
   const system = useContext(SystemContext);
   const { DialogFooter } = system;
