@@ -15,8 +15,18 @@ import { usePopper } from "react-popper";
 import { AnimatePresence, motion } from "framer-motion";
 import maxSize from "popper-max-size-modifier";
 import { css } from "@emotion/react";
+import styled from "@emotion/styled";
 
 const Context = createContext();
+
+const Input = styled.input({
+	border: 0,
+	padding: 0,
+	height: '100%',
+	fontSize: '1rem',
+	outline: 0,
+	background: 'transparent',
+}, props => ({caretColor: props.theme.color.primary}))
 
 const Container = forwardRef(function SelectContainer(
   { options, value, label, classes, suffix, show, search, kw, setKw },
@@ -33,11 +43,10 @@ const Container = forwardRef(function SelectContainer(
     <>
       <div ref={selectedRef} tabIndex={0} className={classes.selected}>
         {show && search ? (
-          <input
+          <Input
             ref={inputRef}
             value={kw}
             onChange={({ target: { value } }) => setKw(value)}
-            className={classes.input}
           />
         ) : (
           options.find((option) => option.value === value)?.children
