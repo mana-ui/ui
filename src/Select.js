@@ -28,6 +28,37 @@ const Input = styled.input({
 	background: 'transparent',
 }, props => ({caretColor: props.theme.color.primary}))
 
+const Selected = styled.div({
+  boxSizing: 'border-box',
+  cursor: 'pointer',
+  width: "100%",
+  height: "100%",
+  fontSize: '1rem',
+  fontWeight: 400,
+  letterSpacing: '.009375em',
+  alignSelf: 'flex-end',
+  border: 0,
+  borderBottom: `1px solid #ced4da`,
+  padding: '20px 16px 6px',
+  outline: 0,
+  "&:-webkit-autofill:first-line": {
+    fontSize: 16,
+    fontFamily: "Sans-Serif",
+  },
+  animationDelay: "1s" /* Safari support - any positive time runs instantly */,
+  animationName: "$autofill",
+  animationFillMode: "both",
+  "&:-internal-autofill-selected + label": {
+    transform: "translateY(-106%) scale(0.75)",
+  },
+}, ({theme: {color: {primary}}}) => ({"&:focus, &:focus-within": {
+  borderBottom: `1px solid ${primary}`,
+  "& + label": {
+    color: primary,
+    transform: "translateY(-106%) scale(0.75)",
+  },
+}}))
+
 const Container = forwardRef(function SelectContainer(
   { options, value, label, classes, suffix, show, search, kw, setKw },
   ref
@@ -41,7 +72,7 @@ const Container = forwardRef(function SelectContainer(
   }));
   return (
     <>
-      <div ref={selectedRef} tabIndex={0} className={classes.selected}>
+      <Selected ref={selectedRef} tabIndex={0}>
         {show && search ? (
           <Input
             ref={inputRef}
@@ -51,7 +82,7 @@ const Container = forwardRef(function SelectContainer(
         ) : (
           options.find((option) => option.value === value)?.children
         )}
-      </div>
+      </Selected>
       <label className={classes.label}>{label}</label>
       <span className={classes.suffix}>{suffix}</span>
     </>
@@ -157,10 +188,20 @@ const applyMaxSize = {
     const { height } = state.modifiersData.maxSize;
     state.styles.popper = {
       ...state.styles.popper,
-      maxHeight: `${height - 96}px`,
+      maxHeight: `${height - 48}px`,
     };
   },
 };
+
+const preventOverflow = {
+  name: 'preventOverflow',
+  requires: ['offset'],
+  options: {
+    mainAxis: false,
+    altAxis: true,
+    padding: 48,
+  }
+}
 
 export const Select = ({
   className,
@@ -198,20 +239,10 @@ export const Select = ({
   }, [show]);
 
   const [popperElement, setPopperElement] = useState(null);
-  const offsetModifer = useMemo(
-    () => ({
-      name: "offset",
-      options: {
-        offset: ({ placement, reference, popper }) => {
-          return [0, search ? 0 : -reference.height / 2];
-        },
-      },
-    }),
-    []
-  );
+  
   const { styles } = usePopper(wrapperRef.current, popperElement, {
     strategy: "fixed",
-    modifiers: [offsetModifer, sameWidth, maxSize, applyMaxSize],
+    modifiers: [sameWidth, ...search ? [  maxSize, applyMaxSize]: [preventOverflow]],
   });
   const [kw, setKw] = useState("");
   return (
