@@ -2,6 +2,7 @@ import React, {
   createContext,
   forwardRef,
   useContext,
+  useEffect,
   useImperativeHandle,
   useLayoutEffect,
   useMemo,
@@ -19,45 +20,75 @@ import styled from "@emotion/styled";
 
 const Context = createContext();
 
-const Input = styled.input({
-	border: 0,
-	padding: 0,
-	height: '100%',
-	fontSize: '1rem',
-	outline: 0,
-	background: 'transparent',
-}, props => ({caretColor: props.theme.color.primary}))
+const Input = styled.input(
+  {
+    border: 0,
+    padding: 0,
+    height: "100%",
+    fontSize: "1rem",
+    outline: 0,
+    background: "transparent",
+  },
+  (props) => ({ caretColor: props.theme.color.primary })
+);
 
-const Selected = styled.div({
-  boxSizing: 'border-box',
-  cursor: 'pointer',
-  width: "100%",
-  height: "100%",
-  fontSize: '1rem',
-  fontWeight: 400,
-  letterSpacing: '.009375em',
-  alignSelf: 'flex-end',
-  border: 0,
-  borderBottom: `1px solid #ced4da`,
-  padding: '20px 16px 6px',
-  outline: 0,
-  "&:-webkit-autofill:first-line": {
-    fontSize: 16,
-    fontFamily: "Sans-Serif",
+const Selected = styled.div(
+  {
+    boxSizing: "border-box",
+    cursor: "pointer",
+    width: "100%",
+    height: "100%",
+    fontSize: "1rem",
+    fontWeight: 400,
+    letterSpacing: ".009375em",
+    alignSelf: "flex-end",
+    border: 0,
+    borderBottom: `1px solid #ced4da`,
+    padding: "20px 16px 6px",
+    outline: 0,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    "&:-webkit-autofill:first-line": {
+      fontSize: 16,
+      fontFamily: "Sans-Serif",
+    },
+    animationDelay:
+      "1s" /* Safari support - any positive time runs instantly */,
+    animationName: "$autofill",
+    animationFillMode: "both",
+    "&:-internal-autofill-selected + label": {
+      transform: "translateY(-106%) scale(0.75)",
+    },
   },
-  animationDelay: "1s" /* Safari support - any positive time runs instantly */,
-  animationName: "$autofill",
-  animationFillMode: "both",
-  "&:-internal-autofill-selected + label": {
-    transform: "translateY(-106%) scale(0.75)",
-  },
-}, ({theme: {color: {primary}}}) => ({"&:focus, &:focus-within": {
-  borderBottom: `1px solid ${primary}`,
-  "& + label": {
-    color: primary,
-    transform: "translateY(-106%) scale(0.75)",
-  },
-}}))
+  ({
+    show,
+    theme: {
+      color: { primary },
+    },
+  }) => {
+    const style = {
+      borderBottom: `1px solid ${primary}`,
+      "& + label": {
+        color: primary,
+      },
+    };
+    return Object.assign(
+      {
+        "&:focus, &:focus-within": style,
+      },
+      show
+        ? {
+            borderBottom: `1px solid ${primary}`,
+            "& + label": {
+              color: primary,
+              transform: "translateY(-106%) scale(0.75)",
+            },
+          }
+        : null
+    );
+  }
+);
 
 const Container = forwardRef(function SelectContainer(
   { options, value, label, classes, suffix, show, search, kw, setKw },
@@ -70,9 +101,12 @@ const Container = forwardRef(function SelectContainer(
       (inputRef.current ?? selectedRef.current).focus();
     },
   }));
+  useEffect(() => {
+    selectedRef.current.focus()
+  }, [value])
   return (
     <>
-      <Selected ref={selectedRef} tabIndex={0}>
+      <Selected ref={selectedRef} tabIndex={0} show={show}>
         {show && search ? (
           <Input
             ref={inputRef}
@@ -120,20 +154,19 @@ const variants = {
     transition: { duration: 0.178, delay: 0.089 },
   },
 };
+
+const PopRef = styled.div`
+  index: 8;
+  display: flex;
+  align-items: stretch;
+`;
+
 const DropDown = forwardRef(function DropDown(
-  { classes, options, activeValue, onChange, style, kw },
+  { classes, options, activeValue, onChange, style },
   ref
 ) {
   return (
-    <div
-      style={style}
-      className={classes.popRef}
-      css={css`
-        display: flex;
-        align-items: stretch;
-      `}
-      ref={ref}
-    >
+    <PopRef style={style} ref={ref}>
       <motion.div
         css={css`
           flex: 1;
@@ -146,38 +179,21 @@ const DropDown = forwardRef(function DropDown(
         animate={["enterFade", "enterScale"]}
         exit={["leaveFade", "leaveScale"]}
       >
-        {options
-          .filter(({ children }) =>
-            children.toLowerCase().includes(kw.toLowerCase())
-          )
-          .map(({ children, value }) => (
-            <ListItem
-              key={value}
-              active={activeValue === value}
-              onClick={() => {
-                onChange(value);
-              }}
-            >
-              {children}
-            </ListItem>
-          ))}
+        {options.map(({ children, value, key }) => (
+          <ListItem
+            key={key}
+            active={activeValue === value}
+            onClick={() => {
+              onChange(value);
+            }}
+          >
+            {children}
+          </ListItem>
+        ))}
       </motion.div>
-    </div>
+    </PopRef>
   );
 });
-
-const sameWidth = {
-  name: "sameWidth",
-  enabled: true,
-  phase: "beforeWrite",
-  requires: ["computeStyles"],
-  fn: ({ state }) => {
-    state.styles.popper.width = `${state.rects.reference.width}px`;
-  },
-  effect: ({ state }) => {
-    state.elements.popper.style.width = `${state.elements.reference.offsetWidth}px`;
-  },
-};
 
 const applyMaxSize = {
   name: "applyMaxSize",
@@ -194,14 +210,13 @@ const applyMaxSize = {
 };
 
 const preventOverflow = {
-  name: 'preventOverflow',
-  requires: ['offset'],
+  name: "preventOverflow",
   options: {
     mainAxis: false,
     altAxis: true,
     padding: 48,
-  }
-}
+  },
+};
 
 export const Select = ({
   className,
@@ -210,9 +225,10 @@ export const Select = ({
   value,
   onChange,
   search,
+  options,
   ...props
 }) => {
-  const options = [];
+  const optionProps = [];
   const [show, setShow] = useState(false);
   const selectedRef = useRef();
   const wrapperRef = useRef();
@@ -229,7 +245,10 @@ export const Select = ({
         selectedRef.current.focus();
       }
       const handler = ({ target }) => {
-        if (!wrapperRef.current.contains(target)) setShow(false);
+        if (!wrapperRef.current.contains(target)) {
+          setShow(false);
+          setKw("");
+        }
       };
       document.addEventListener("click", handler);
       return () => {
@@ -237,21 +256,23 @@ export const Select = ({
       };
     }
   }, [show]);
-
   const [popperElement, setPopperElement] = useState(null);
-  
+
   const { styles } = usePopper(wrapperRef.current, popperElement, {
     strategy: "fixed",
-    modifiers: [sameWidth, ...search ? [  maxSize, applyMaxSize]: [preventOverflow]],
+    modifiers: search ? [maxSize, applyMaxSize] : [preventOverflow],
   });
   const [kw, setKw] = useState("");
+  const optionElems = options
+    .filter((option) => !show || (search?.(option, kw) ?? true))
+    .map(children);
   return (
     <Context.Provider
       value={(option) => {
-        options.push(option);
+        optionProps.push(option);
       }}
     >
-      {children}
+      {optionElems}
       <div
         style={style}
         ref={wrapperRef}
@@ -263,7 +284,7 @@ export const Select = ({
         <Container
           ref={selectedRef}
           value={value}
-          options={options}
+          options={optionProps}
           classes={classes}
           show={show}
           search={search}
@@ -276,7 +297,7 @@ export const Select = ({
             <DropDown
               ref={setPopperElement}
               style={styles.popper}
-              options={options}
+              options={optionProps}
               classes={classes}
               activeValue={value}
               onChange={(v) => {
@@ -284,7 +305,6 @@ export const Select = ({
                 if (onChange) onChange(v);
                 setShow(false);
               }}
-              kw={kw}
             />
           )}
         </AnimatePresence>
