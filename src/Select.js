@@ -114,7 +114,7 @@ const Container = forwardRef(function SelectContainer(
             onChange={({ target: { value } }) => setKw(value)}
           />
         ) : (
-          options.find((option) => option.value === value)?.children
+          options.find((option) => option.props.value === value)?.props.children
         )}
       </Selected>
       <label className={classes.label}>{label}</label>
@@ -122,17 +122,6 @@ const Container = forwardRef(function SelectContainer(
     </>
   );
 });
-
-const ListItem = ({ children, active, onClick }) => {
-  const system = useContext(SystemContext);
-  const theme = useTheme();
-  const classes = system.useListItemStyles({ active, theme });
-  return (
-    <div className={classes.listItem} onClick={onClick}>
-      {children}
-    </div>
-  );
-};
 
 const variants = {
   enterFade: {
@@ -162,7 +151,7 @@ const PopRef = styled.div`
 `;
 
 const DropDown = forwardRef(function DropDown(
-  { classes, options, activeValue, onChange, style },
+  { classes, options, style },
   ref
 ) {
   return (
@@ -179,17 +168,7 @@ const DropDown = forwardRef(function DropDown(
         animate={["enterFade", "enterScale"]}
         exit={["leaveFade", "leaveScale"]}
       >
-        {options.map(({ children, value, key }) => (
-          <ListItem
-            key={key}
-            active={activeValue === value}
-            onClick={() => {
-              onChange(value);
-            }}
-          >
-            {children}
-          </ListItem>
-        ))}
+        {options}
       </motion.div>
     </PopRef>
   );
@@ -228,7 +207,6 @@ export const Select = ({
   options,
   ...props
 }) => {
-  const optionProps = [];
   const [show, setShow] = useState(false);
   const selectedRef = useRef();
   const wrapperRef = useRef();
@@ -268,11 +246,12 @@ export const Select = ({
     .map(children);
   return (
     <Context.Provider
-      value={(option) => {
-        optionProps.push(option);
-      }}
+      value={{value, onChange: (v) => {
+        selectedRef.current.focus();
+        if (onChange) onChange(v);
+        setShow(false);
+      }}}
     >
-      {optionElems}
       <div
         style={style}
         ref={wrapperRef}
@@ -284,7 +263,7 @@ export const Select = ({
         <Container
           ref={selectedRef}
           value={value}
-          options={optionProps}
+          options={optionElems}
           classes={classes}
           show={show}
           search={search}
@@ -297,14 +276,8 @@ export const Select = ({
             <DropDown
               ref={setPopperElement}
               style={styles.popper}
-              options={optionProps}
+              options={optionElems}
               classes={classes}
-              activeValue={value}
-              onChange={(v) => {
-                selectedRef.current.focus();
-                if (onChange) onChange(v);
-                setShow(false);
-              }}
             />
           )}
         </AnimatePresence>
@@ -313,8 +286,15 @@ export const Select = ({
   );
 };
 
-export const Option = (props) => {
-  const setOption = useContext(Context);
-  setOption(props);
-  return null;
+export const Option = ({ children, value }) => {
+  const {value: selectedValue, onChange} = useContext(Context);
+  const active = value == selectedValue
+  const system = useContext(SystemContext);
+  const theme = useTheme();
+  const classes = system.useListItemStyles({ active, theme });
+  return (
+    <div className={classes.listItem} onClick={() => onChange(value)}>
+      {children}
+    </div>
+  );
 };
