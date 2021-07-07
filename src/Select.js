@@ -101,13 +101,10 @@ const Container = forwardRef(function SelectContainer(
       (inputRef.current ?? selectedRef.current).focus();
     },
   }));
-  useEffect(() => {
-    selectedRef.current.focus()
-  }, [value])
   return (
     <>
-      <Selected ref={selectedRef} tabIndex={0} show={show}>
-        {show && search ? (
+      <Selected ref={selectedRef} tabIndex={0} show={show == SHOW}>
+        {show === SHOW && search ? (
           <Input
             ref={inputRef}
             value={kw}
@@ -145,7 +142,7 @@ const variants = {
 };
 
 const PopRef = styled.div`
-  index: 8;
+  z-index: 8;
   display: flex;
   align-items: stretch;
 `;
@@ -197,6 +194,25 @@ const preventOverflow = {
   },
 };
 
+const minWidth = {
+  name: "minWidth",
+  enabled: true,
+  phase: "beforeWrite",
+  requires: ["computeStyles"],
+  fn: ({ state }) => {
+    state.styles.popper.minWidth = `${state.rects.reference.width}px`;
+  },
+  effect: ({ state }) => {
+    state.elements.popper.style.minWidth = `${
+      state.elements.reference.offsetWidth
+    }px`;
+  }
+};
+
+const SHOW = 0
+const CANCEL_HIDE = 1
+const SELECT_HIDE = 2
+
 export const Select = ({
   className,
   style,
@@ -207,7 +223,7 @@ export const Select = ({
   options,
   ...props
 }) => {
-  const [show, setShow] = useState(false);
+  const [dropdown, setDropdown] = useState(CANCEL_HIDE);
   const selectedRef = useRef();
   const wrapperRef = useRef();
   const system = useContext(SystemContext);
@@ -215,16 +231,16 @@ export const Select = ({
   const classes = system.useSelectStyles({
     theme,
     active: value !== null && value !== void 0,
-    focus: show,
+    focus: dropdown === SHOW,
   });
   useLayoutEffect(() => {
-    if (show) {
+    if (dropdown === SHOW) {
       if (search) {
         selectedRef.current.focus();
       }
       const handler = ({ target }) => {
         if (!wrapperRef.current.contains(target)) {
-          setShow(false);
+          setDropdown(CANCEL_HIDE);
           setKw("");
         }
       };
@@ -232,24 +248,25 @@ export const Select = ({
       return () => {
         document.removeEventListener("click", handler);
       };
-    }
-  }, [show]);
+    } else if (dropdown === SELECT_HIDE) {
+			selectedRef.current.focus()
+		}
+  }, [dropdown]);
   const [popperElement, setPopperElement] = useState(null);
 
   const { styles } = usePopper(wrapperRef.current, popperElement, {
     strategy: "fixed",
-    modifiers: search ? [maxSize, applyMaxSize] : [preventOverflow],
+    modifiers: search ? [minWidth, maxSize, applyMaxSize] : [minWidth, preventOverflow],
   });
   const [kw, setKw] = useState("");
   const optionElems = options
-    .filter((option) => !show || (search?.(option, kw) ?? true))
+    .filter((option) => (dropdown !== SHOW) || (search?.(option, kw) ?? true))
     .map(children);
   return (
     <Context.Provider
       value={{value, onChange: (v) => {
-        selectedRef.current.focus();
         if (onChange) onChange(v);
-        setShow(false);
+        setDropdown(SELECT_HIDE);
       }}}
     >
       <div
@@ -257,7 +274,7 @@ export const Select = ({
         ref={wrapperRef}
         className={cx(classes.wrapper, className)}
         onClick={() => {
-          if (show === false) setShow(true);
+          if (dropdown !== SHOW) setDropdown(SHOW);
         }}
       >
         <Container
@@ -265,14 +282,14 @@ export const Select = ({
           value={value}
           options={optionElems}
           classes={classes}
-          show={show}
+          show={dropdown}
           search={search}
           kw={kw}
           setKw={setKw}
           {...props}
         />
         <AnimatePresence>
-          {show && (
+          {dropdown === SHOW && (
             <DropDown
               ref={setPopperElement}
               style={styles.popper}
