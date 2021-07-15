@@ -1,6 +1,6 @@
 {
   "name": "@mana-ui/ui",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "main": "src/index.js",
   "dependencies": {
     "@mana-ui/lib": "^0.1.0",
