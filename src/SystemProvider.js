@@ -3,6 +3,7 @@ import SystemContext from "./SystemContext";
 import { ThemeProvider as JssThemeProvider, jss, JssProvider } from "react-jss";
 import defaults from "lodash.defaultsdeep";
 import { ThemeProvider } from "@emotion/react";
+import { NotificationContainer } from "./notify";
 
 jss.setup({ insertionPoint: "mana-insertion-point" });
 
@@ -13,7 +14,7 @@ const SystemProvider = ({ theme, system, children }) => {
       <JssThemeProvider theme={mergedTheme}>
         <ThemeProvider theme={mergedTheme}>
           <SystemContext.Provider value={system}>
-            {children}
+            <NotificationContainer>{children}</NotificationContainer>
           </SystemContext.Provider>
         </ThemeProvider>
       </JssThemeProvider>
