@@ -8,7 +8,7 @@ import { NotificationContainer } from "./notify";
 jss.setup({ insertionPoint: "mana-insertion-point" });
 
 const SystemProvider = ({ theme, system, children }) => {
-  const mergedTheme = defaults(theme, system.defaultTheme);
+  const mergedTheme = system.variant(defaults(theme, system.defaultTheme));
   return (
     <JssProvider jss={jss}>
       <JssThemeProvider theme={mergedTheme}>
