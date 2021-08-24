@@ -25,6 +25,7 @@ const Notification = ({ children }) => {
         left: 50%;
         transform: translateX(-50%);
         background: #fff;
+				z-index: 8;
       `}
     >
       <motion.div
@@ -54,7 +55,7 @@ export const NotificationContainer = ({ children }) => {
       setTimeout(() => {
         setNotification(null);
       }, notification.timeout);
-  }, notification);
+  }, [notification]);
   return (
     <>
       {children}
