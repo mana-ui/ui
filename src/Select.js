@@ -191,6 +191,7 @@ const preventOverflow = {
     mainAxis: false,
     altAxis: true,
     padding: 48,
+    tether: false
   },
 };
 
@@ -253,6 +254,7 @@ export const Select = ({
 		}
   }, [dropdown]);
   const [popperElement, setPopperElement] = useState(null);
+
 
   const { styles } = usePopper(wrapperRef.current, popperElement, {
     strategy: "fixed",
