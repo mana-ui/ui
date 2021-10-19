@@ -2,10 +2,8 @@ import React, {
   createContext,
   forwardRef,
   useContext,
-  useEffect,
   useImperativeHandle,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -191,7 +189,7 @@ const preventOverflow = {
     mainAxis: false,
     altAxis: true,
     padding: 48,
-    tether: false
+    tether: false,
   },
 };
 
@@ -204,15 +202,13 @@ const minWidth = {
     state.styles.popper.minWidth = `${state.rects.reference.width}px`;
   },
   effect: ({ state }) => {
-    state.elements.popper.style.minWidth = `${
-      state.elements.reference.offsetWidth
-    }px`;
-  }
+    state.elements.popper.style.minWidth = `${state.elements.reference.offsetWidth}px`;
+  },
 };
 
-const SHOW = 0
-const CANCEL_HIDE = 1
-const SELECT_HIDE = 2
+const SHOW = 0;
+const CANCEL_HIDE = 1;
+const SELECT_HIDE = 2;
 
 export const Select = ({
   className,
@@ -250,26 +246,30 @@ export const Select = ({
         document.removeEventListener("click", handler);
       };
     } else if (dropdown === SELECT_HIDE) {
-			selectedRef.current.focus()
-		}
+      selectedRef.current.focus();
+    }
   }, [dropdown]);
   const [popperElement, setPopperElement] = useState(null);
 
-
   const { styles } = usePopper(wrapperRef.current, popperElement, {
     strategy: "fixed",
-    modifiers: search ? [minWidth, maxSize, applyMaxSize] : [minWidth, preventOverflow],
+    modifiers: search
+      ? [minWidth, maxSize, applyMaxSize]
+      : [minWidth, preventOverflow],
   });
   const [kw, setKw] = useState("");
   const optionElems = options
-    .filter((option) => (dropdown !== SHOW) || (search?.(option, kw) ?? true))
+    .filter((option) => dropdown !== SHOW || (search?.(option, kw) ?? true))
     .map(children);
   return (
     <Context.Provider
-      value={{value, onChange: (v) => {
-        if (onChange) onChange(v);
-        setDropdown(SELECT_HIDE);
-      }}}
+      value={{
+        value,
+        onChange: (v) => {
+          if (onChange) onChange(v);
+          setDropdown(SELECT_HIDE);
+        },
+      }}
     >
       <div
         style={style}
@@ -306,13 +306,24 @@ export const Select = ({
 };
 
 export const Option = ({ children, value }) => {
-  const {value: selectedValue, onChange} = useContext(Context);
-  const active = value == selectedValue
-  const system = useContext(SystemContext);
-  const theme = useTheme();
-  const classes = system.useListItemStyles({ active, theme });
+  const { value: selectedValue, onChange } = useContext(Context);
+  const active = value == selectedValue;
+  const { color: {highlight}} = useTheme();
   return (
-    <div className={classes.listItem} onClick={() => onChange(value)}>
+    <div
+      css={css`
+        padding: 0 16px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        background-color: ${active ?highlight(): 'transparent'};
+        &:hover {
+          background: ${highlight('#000')}
+        }
+      `}
+      onClick={() => onChange(value)}
+    >
       {children}
     </div>
   );
