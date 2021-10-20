@@ -6,18 +6,18 @@ import cx from 'classnames'
 const Input = ({ value, onChange, type = "text", label, className }) => {
   const val = value ?? ""
   const active = val !== "";
-  const system = useContext(SystemContext);
+  const {useInputStyles, Label, Input} = useContext(SystemContext);
   const theme = useTheme()
-  const classes = system.useInputStyles({ active, theme });
+  const classes = useInputStyles({ active, theme });
   return (
     <div className={cx(classes.wrapper, className)}>
-      <input
+      <Input
         type={type}
         value={val}
         onChange={onChange}
         className={classes.input}
       />
-      <label className={classes.label}>{label}</label>
+      <Label className={classes.label} active={active}>{label}</Label>
     </div>
   );
 };
